@@ -20,26 +20,3 @@ Main Interface:
 
 Dark Mode & Timer:
 ![Dark Mode](img/screenshot2.png)
-
-## Technologies
-- HTML
-- CSS
-- JavaScript
-- LocalStorage
-
-## How to run locally
-1. Download or clone this repository
-2. Open `index.html` in your browser
-
-## Project purpose
-This project was created as a university assignment to practice:
-- Web development
-- JavaScript logic
-- UI design
-- Working with LocalStorage
-
-## Future improvements
-- User authentication
-- Cloud data storage
-- AI assistant
-- Mobile app version
