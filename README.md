@@ -16,10 +16,10 @@ https://student-task-planner.github.io
 ## Screenshots
 
 Main Interface:
-![Main Interface](screenshot1.png)
+![Main Interface](img/screenshot1.png)
 
 Dark Mode & Timer:
-![Dark Mode](screenshot2.png)
+![Dark Mode](img/screenshot2.png)
 
 ## Technologies
 - HTML
