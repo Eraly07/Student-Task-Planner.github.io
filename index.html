@@ -1,71 +1,71 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Student Task Planner</title>
+  <title>Планировщик задач студента</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body data-theme="light">
   <div class="app">
     <header class="app-header">
       <div class="brand">
-        <div class="logo">STP</div>
+        <div class="logo">ПЗС</div>
         <div>
-          <h1>Student Task Planner</h1>
-          <p>Organize tasks, stay focused, and track progress.</p>
+          <h1>Планировщик задач студента</h1>
+          <p>Организуйте задачи, сохраняйте фокус и отслеживайте прогресс.</p>
         </div>
       </div>
-      <button id="themeToggle" class="btn ghost" type="button">Dark Mode</button>
+      <button id="themeToggle" class="btn ghost" type="button">Тёмная тема</button>
     </header>
 
     <main class="layout">
       <section class="panel tasks-panel">
         <div class="panel-header">
           <div>
-            <h2>Tasks</h2>
-            <p class="muted">Plan smart, finish stronger.</p>
-          </div>
-          <button id="clearCompleted" class="btn ghost" type="button">Clear Completed</button>
+          <h2>Задачи</h2>
+          <p class="muted">Планируйте разумно, завершайте уверенно.</p>
         </div>
+        <button id="clearCompleted" class="btn ghost" type="button">Очистить выполненные</button>
+      </div>
 
         <form id="taskForm" class="task-form">
           <div class="field">
-            <label for="taskText">Task</label>
-            <input id="taskText" type="text" placeholder="Write your next task..." required />
+            <label for="taskText">Задача</label>
+            <input id="taskText" type="text" placeholder="Запишите следующую задачу..." required />
           </div>
           <div class="field">
-            <label for="taskCategory">Category</label>
+            <label for="taskCategory">Категория</label>
             <select id="taskCategory">
-              <option value="Study">Study</option>
-              <option value="Home">Home</option>
-              <option value="Sport">Sport</option>
-              <option value="Other">Other</option>
+              <option value="Учёба">Учёба</option>
+              <option value="Дом">Дом</option>
+              <option value="Спорт">Спорт</option>
+              <option value="Другое">Другое</option>
             </select>
           </div>
           <div class="field">
-            <label for="taskPriority">Priority</label>
+            <label for="taskPriority">Приоритет</label>
             <select id="taskPriority">
-              <option value="low">Low</option>
-              <option value="medium" selected>Medium</option>
-              <option value="high">High</option>
+              <option value="low">Низкий</option>
+              <option value="medium" selected>Средний</option>
+              <option value="high">Высокий</option>
             </select>
           </div>
           <div class="field">
-            <label for="taskDeadline">Deadline</label>
+            <label for="taskDeadline">Дедлайн</label>
             <input id="taskDeadline" type="date" />
           </div>
-          <button class="btn primary" type="submit">Add</button>
+          <button class="btn primary" type="submit">Добавить</button>
         </form>
 
         <div class="task-controls">
-          <div class="filters" role="tablist" aria-label="Task filters">
-            <button class="filter-btn active" data-filter="all" type="button">All</button>
-            <button class="filter-btn" data-filter="active" type="button">Active</button>
-            <button class="filter-btn" data-filter="completed" type="button">Completed</button>
+          <div class="filters" role="tablist" aria-label="Фильтры задач">
+            <button class="filter-btn active" data-filter="all" type="button">Все</button>
+            <button class="filter-btn" data-filter="active" type="button">Активные</button>
+            <button class="filter-btn" data-filter="completed" type="button">Выполненные</button>
           </div>
           <div class="search">
-            <input id="searchInput" type="search" placeholder="Search tasks..." />
+            <input id="searchInput" type="search" placeholder="Поиск задач..." />
           </div>
         </div>
 
@@ -76,92 +76,92 @@
         <section class="panel stats-panel">
           <div class="panel-header">
             <div>
-              <h2>Statistics</h2>
-              <p class="muted">Your productivity snapshot.</p>
-            </div>
-          </div>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-label">Total</span>
-              <span id="statTotal" class="stat-value">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Active</span>
-              <span id="statActive" class="stat-value">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Completed</span>
-              <span id="statCompleted" class="stat-value">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Overdue</span>
-              <span id="statOverdue" class="stat-value">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Due Today</span>
-              <span id="statToday" class="stat-value">0</span>
-            </div>
-          </div>
+          <h2>Статистика</h2>
+          <p class="muted">Сводка вашей продуктивности.</p>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Всего</span>
+          <span id="statTotal" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Активные</span>
+          <span id="statActive" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Выполненные</span>
+          <span id="statCompleted" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Просроченные</span>
+          <span id="statOverdue" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">На сегодня</span>
+          <span id="statToday" class="stat-value">0</span>
+        </div>
+      </div>
         </section>
 
         <section class="panel timer-panel">
           <div class="panel-header">
             <div>
-              <h2>Focus Timer</h2>
-              <p class="muted">Pomodoro mode for deep work.</p>
-            </div>
+            <h2>Фокус-таймер</h2>
+            <p class="muted">Помодоро для глубокой работы.</p>
           </div>
-          <div class="timer-modes">
-            <button class="mode-btn active" data-mode="focus" type="button">Focus 25:00</button>
-            <button class="mode-btn" data-mode="break" type="button">Break 05:00</button>
-          </div>
-          <div id="timerDisplay" class="timer-display">25:00</div>
-          <div class="timer-controls">
-            <button id="timerStart" class="btn primary" type="button">Start</button>
-            <button id="timerPause" class="btn ghost" type="button">Pause</button>
-            <button id="timerReset" class="btn ghost" type="button">Reset</button>
-          </div>
-          <p class="timer-hint">Stay present. Short breaks improve retention.</p>
-        </section>
-      </aside>
-    </main>
+        </div>
+        <div class="timer-modes">
+          <button class="mode-btn active" data-mode="focus" type="button">Фокус 25:00</button>
+          <button class="mode-btn" data-mode="break" type="button">Перерыв 05:00</button>
+        </div>
+        <div id="timerDisplay" class="timer-display">25:00</div>
+        <div class="timer-controls">
+          <button id="timerStart" class="btn primary" type="button">Старт</button>
+          <button id="timerPause" class="btn ghost" type="button">Пауза</button>
+          <button id="timerReset" class="btn ghost" type="button">Сброс</button>
+        </div>
+        <p class="timer-hint">Будьте в моменте. Короткие перерывы улучшают усвоение.</p>
+      </section>
+    </aside>
+  </main>
   </div>
 
   <div id="editModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editTitle">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="editTitle">Edit Task</h3>
-        <button id="editClose" class="icon-btn" type="button">Close</button>
+        <h3 id="editTitle">Редактировать задачу</h3>
+        <button id="editClose" class="icon-btn" type="button">Закрыть</button>
       </div>
       <form id="editForm" class="modal-form">
         <div class="field">
-          <label for="editText">Task</label>
+          <label for="editText">Задача</label>
           <input id="editText" type="text" required />
         </div>
         <div class="field">
-          <label for="editCategory">Category</label>
+          <label for="editCategory">Категория</label>
           <select id="editCategory">
-            <option value="Study">Study</option>
-            <option value="Home">Home</option>
-            <option value="Sport">Sport</option>
-            <option value="Other">Other</option>
+            <option value="Учёба">Учёба</option>
+            <option value="Дом">Дом</option>
+            <option value="Спорт">Спорт</option>
+            <option value="Другое">Другое</option>
           </select>
         </div>
         <div class="field">
-          <label for="editPriority">Priority</label>
+          <label for="editPriority">Приоритет</label>
           <select id="editPriority">
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
+            <option value="low">Низкий</option>
+            <option value="medium">Средний</option>
+            <option value="high">Высокий</option>
           </select>
         </div>
         <div class="field">
-          <label for="editDeadline">Deadline</label>
+          <label for="editDeadline">Дедлайн</label>
           <input id="editDeadline" type="date" />
         </div>
         <div class="modal-actions">
-          <button class="btn primary" type="submit">Save</button>
-          <button id="editCancel" class="btn ghost" type="button">Cancel</button>
+          <button class="btn primary" type="submit">Сохранить</button>
+          <button id="editCancel" class="btn ghost" type="button">Отмена</button>
         </div>
       </form>
     </div>
