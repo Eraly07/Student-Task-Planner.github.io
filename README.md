@@ -12,11 +12,3 @@ A simple web application for managing daily tasks and improving productivity for
 
 ## Live Demo
 https://student-task-planner.github.io
-
-## Screenshots
-
-Main Interface:
-![Main Interface](img/screenshot1.png)
-
-Dark Mode & Timer:
-![Dark Mode](img/screenshot2.png)
