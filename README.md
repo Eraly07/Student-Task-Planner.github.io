@@ -11,4 +11,4 @@ A simple web application for managing daily tasks and improving productivity for
 - Focus Timer (Pomodoro)
 
 ## Live Demo
-https://student-task-planner.github.io
+(https://eraly07.github.io/Student-Task-Planner.github.io/)
