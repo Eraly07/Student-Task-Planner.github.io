@@ -1,4 +1,4 @@
-﻿/* Student Task Planner - core logic */
+/* Student Task Planner - core logic */
 
 const STORAGE_KEY = "stp_tasks_v1";
 const THEME_KEY = "stp_theme";
@@ -119,7 +119,7 @@ function sortTasks(a, b) {
 
 function applyTheme(theme) {
   document.body.dataset.theme = theme;
-  themeToggle.textContent = theme === "dark" ? "Light Mode" : "Dark Mode";
+  themeToggle.textContent = theme === "dark" ? "Светлая тема" : "Тёмная тема";
 }
 
 function setTheme(theme) {
@@ -165,7 +165,12 @@ function createTaskCard(task) {
 
   const priorityBadge = document.createElement("span");
   priorityBadge.className = `badge priority-${task.priority}`;
-  priorityBadge.textContent = `${task.priority.charAt(0).toUpperCase()}${task.priority.slice(1)}`;
+  const priorityLabel = {
+    low: "Низкий",
+    medium: "Средний",
+    high: "Высокий",
+  };
+  priorityBadge.textContent = priorityLabel[task.priority] || task.priority;
 
   badges.append(categoryBadge, priorityBadge);
   top.append(text, badges);
@@ -175,7 +180,7 @@ function createTaskCard(task) {
 
   const deadline = document.createElement("span");
   deadline.className = "deadline";
-  deadline.textContent = task.deadline ? `Deadline: ${task.deadline}` : "No deadline";
+  deadline.textContent = task.deadline ? `Дедлайн: ${task.deadline}` : "Без дедлайна";
 
   if (task.deadline) {
     if (isOverdue(task)) {
@@ -194,13 +199,13 @@ function createTaskCard(task) {
   const editButton = document.createElement("button");
   editButton.type = "button";
   editButton.className = "icon-btn";
-  editButton.textContent = "Edit";
+  editButton.textContent = "Редактировать";
   editButton.dataset.action = "edit";
 
   const deleteButton = document.createElement("button");
   deleteButton.type = "button";
   deleteButton.className = "icon-btn";
-  deleteButton.textContent = "Delete";
+  deleteButton.textContent = "Удалить";
   deleteButton.dataset.action = "delete";
 
   actions.append(editButton, deleteButton);
@@ -231,8 +236,8 @@ function renderTasks() {
     const empty = document.createElement("div");
     empty.className = "empty-state";
     empty.textContent = normalizedSearch
-      ? "No tasks match your search."
-      : "No tasks to show yet.";
+      ? "Поиск не дал результатов."
+      : "Пока нет задач.";
     taskList.appendChild(empty);
   } else {
     visibleTasks.forEach((task) => {
@@ -363,7 +368,7 @@ function startTimer() {
     if (remainingSeconds === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      window.alert(`${currentMode === "focus" ? "Focus" : "Break"} session complete!`);
+      window.alert(`${currentMode === "focus" ? "Фокус" : "Перерыв"} завершён!`);
     }
   }, 1000);
 }
