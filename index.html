@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,7 +16,13 @@
           <p>Организуйте задачи, сохраняйте фокус и отслеживайте прогресс.</p>
         </div>
       </div>
-      <button id="themeToggle" class="btn ghost" type="button">Тёмная тема</button>
+      <div class="header-actions">
+        <button id="quickPomodoro" class="btn primary" type="button">Быстрый Pomodoro</button>
+        <button id="exportData" class="btn ghost" type="button">Экспорт данных</button>
+        <button id="importData" class="btn ghost" type="button">Импорт данных</button>
+        <input id="importFile" type="file" accept="application/json" class="hidden-input" />
+        <button id="themeToggle" class="btn ghost" type="button">Тёмная тема</button>
+      </div>
     </header>
 
     <main class="layout">
@@ -54,6 +60,10 @@
           <div class="field">
             <label for="taskDeadline">Дедлайн</label>
             <input id="taskDeadline" type="date" />
+          </div>
+          <div class="field">
+            <label for="taskPomodoroTarget">План Pomodoro</label>
+            <input id="taskPomodoroTarget" type="number" min="1" max="20" step="1" value="1" />
           </div>
           <button class="btn primary" type="submit">Добавить</button>
         </form>
@@ -102,19 +112,53 @@
           <span id="statToday" class="stat-value">0</span>
         </div>
       </div>
+
+      <div class="advanced-stats">
+        <h3>Расширенная статистика</h3>
+        <div class="advanced-stats-grid">
+          <div class="mini-stat">
+            <span class="mini-stat-label">Завершено сегодня</span>
+            <span id="statCompletedTodayAdv" class="mini-stat-value">0</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-stat-label">Завершено за неделю</span>
+            <span id="statCompletedWeekAdv" class="mini-stat-value">0</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-stat-label">Завершено всего</span>
+            <span id="statCompletedAllAdv" class="mini-stat-value">0</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-stat-label">Pomodoro сегодня</span>
+            <span id="statPomodoroTodayAdv" class="mini-stat-value">0</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-stat-label">Pomodoro за неделю</span>
+            <span id="statPomodoroWeekAdv" class="mini-stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="progress-box">
+          <div class="progress-head">
+            <span>Процент выполнения задач</span>
+            <strong id="completionProgressText">0%</strong>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="completionProgressFill" class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
         </section>
 
         <section class="panel timer-panel">
           <div class="panel-header">
             <div>
             <h2>Фокус-таймер</h2>
-            <p class="muted">Помодоро для глубокой работы.</p>
+            <p class="muted">Таймер связан с выбранной задачей или быстрой сессией.</p>
           </div>
         </div>
-        <div class="timer-modes">
-          <button class="mode-btn active" data-mode="focus" type="button">Фокус 25:00</button>
-          <button class="mode-btn" data-mode="break" type="button">Перерыв 05:00</button>
-        </div>
+        <p id="timerContext" class="timer-context">Нет активной сессии</p>
+        <p id="timerPhase" class="timer-phase">Режим: Фокус</p>
         <div id="timerDisplay" class="timer-display">25:00</div>
         <div class="timer-controls">
           <button id="timerStart" class="btn primary" type="button">Старт</button>
@@ -159,12 +203,24 @@
           <label for="editDeadline">Дедлайн</label>
           <input id="editDeadline" type="date" />
         </div>
+        <div class="field">
+          <label for="editPomodoroTarget">План Pomodoro</label>
+          <input id="editPomodoroTarget" type="number" min="1" max="20" step="1" value="1" />
+        </div>
         <div class="modal-actions">
           <button class="btn primary" type="submit">Сохранить</button>
           <button id="editCancel" class="btn ghost" type="button">Отмена</button>
         </div>
       </form>
     </div>
+  </div>
+
+  <div id="floatingTimer" class="floating-timer hidden" aria-live="polite">
+    <div class="floating-timer-header">
+      <span id="floatingTimerPhase">Фокус</span>
+      <span id="floatingTimerTask" class="floating-task">Без привязки</span>
+    </div>
+    <strong id="floatingTimerDisplay" class="floating-timer-display">25:00</strong>
   </div>
 
   <script src="app.js"></script>
