@@ -1,4 +1,4 @@
-/* Student Task Planner - core logic */
+/* Student Task Planner - core logic with achievements & weekly review */
 
 const TASK_STORAGE_KEY = "plannerTasks";
 const LEGACY_TASK_STORAGE_KEY = "stp_tasks_v1";
@@ -59,6 +59,13 @@ const floatingTimerPhase = document.getElementById("floatingTimerPhase");
 const floatingTimerTask = document.getElementById("floatingTimerTask");
 const floatingTimerDisplay = document.getElementById("floatingTimerDisplay");
 
+// Новые элементы для достижений и еженедельного обзора
+const achievementsList = document.getElementById("achievementsList");
+const weeklyReviewModal = document.getElementById("weeklyReviewModal");
+const weeklyReviewContent = document.getElementById("weeklyReviewContent");
+const closeWeeklyReview = document.getElementById("closeWeeklyReview");
+const weeklyReviewOk = document.getElementById("weeklyReviewOk");
+
 const PRIORITY_WEIGHT = {
   high: 3,
   medium: 2,
@@ -84,6 +91,80 @@ const PHASE_LABELS = {
   longBreak: "Длинный перерыв",
 };
 
+// ==================== ДОСТИЖЕНИЯ ====================
+const ACHIEVEMENTS = [
+  {
+    id: "first_task",
+    name: "Первая задача",
+    description: "Создайте свою первую задачу",
+    icon: "✅",
+    condition: (stats, tasks) => tasks.length >= 1,
+  },
+  {
+    id: "five_tasks",
+    name: "Задачник",
+    description: "Создайте 5 задач",
+    icon: "📋",
+    condition: (stats, tasks) => tasks.length >= 5,
+  },
+  {
+    id: "first_completed",
+    name: "Первая победа",
+    description: "Выполните первую задачу",
+    icon: "🎯",
+    condition: (stats, tasks) => stats.total.completedTasks >= 1,
+  },
+  {
+    id: "ten_completed",
+    name: "Десятка",
+    description: "Выполните 10 задач",
+    icon: "🏅",
+    condition: (stats, tasks) => stats.total.completedTasks >= 10,
+  },
+  {
+    id: "first_pomodoro",
+    name: "Первый помидор",
+    description: "Завершите первую Pomodoro-сессию",
+    icon: "🍅",
+    condition: (stats, tasks) => stats.total.pomodoros >= 1,
+  },
+  {
+    id: "pomodoro_master",
+    name: "Мастер фокуса",
+    description: "Завершите 25 Pomodoro",
+    icon: "🔥",
+    condition: (stats, tasks) => stats.total.pomodoros >= 25,
+  },
+  {
+    id: "all_categories",
+    name: "Эрудит",
+    description: "Используйте все категории задач",
+    icon: "🗂️",
+    condition: (stats, tasks) => {
+      const categories = new Set(tasks.map(t => t.category));
+      return categories.size >= 4; // Учёба, Дом, Спорт, Другое
+    },
+  },
+  {
+    id: "high_priority",
+    name: "Важное",
+    description: "Выполните задачу с высоким приоритетом",
+    icon: "⚡",
+    condition: (stats, tasks) => tasks.some(t => t.completed && t.priority === "high"),
+  },
+  {
+    id: "overcome",
+    name: "Преодоление",
+    description: "Выполните просроченную задачу",
+    icon: "💪",
+    condition: (stats, tasks) => {
+      const now = todayMidnight();
+      return tasks.some(t => t.completed && t.deadline && parseDate(t.deadline).getTime() < now.getTime());
+    },
+  },
+];
+
+// ==================== СТАТИСТИКА (расширенная) ====================
 let tasks = [];
 let plannerStats = createDefaultStats();
 let currentFilter = "all";
@@ -127,6 +208,9 @@ function createDefaultStats() {
       completedTasks: 0,
       pomodoros: 0,
     },
+    // НОВОЕ: история по неделям и разблокированные достижения
+    weeklyHistory: {}, // объект: ключ недели -> { completed, pomodoros, topCategory }
+    unlockedAchievements: [], // массив id достижений
   };
 }
 
@@ -203,6 +287,8 @@ function normalizeStats(rawStats) {
       completedTasks: safeNumber(rawStats.total?.completedTasks),
       pomodoros: safeNumber(rawStats.total?.pomodoros),
     },
+    weeklyHistory: rawStats.weeklyHistory || {},
+    unlockedAchievements: Array.isArray(rawStats.unlockedAchievements) ? rawStats.unlockedAchievements : [],
   };
 }
 
@@ -268,25 +354,42 @@ function saveStats() {
   localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(plannerStats));
 }
 
+// ==================== ЕЖЕНЕДЕЛЬНАЯ ИСТОРИЯ ====================
 function ensureStatsCurrentDate() {
-  // Daily counters roll into weekly once per calendar day.
   const now = new Date();
   const todayKey = getDateKey(now);
   const weekKey = getIsoWeekKey(now);
 
+  // Если неделя не поменялась и день тот же – ничего не делаем
   if (plannerStats.lastDate === todayKey && plannerStats.lastWeekKey === weekKey) {
     return;
   }
 
   const sameWeek = plannerStats.lastWeekKey === weekKey;
+
+  // Сохраняем итоги прошлой недели в историю, если неделя сменилась
+  if (!sameWeek && plannerStats.weekly.completedTasks > 0) {
+    const prevWeekKey = plannerStats.lastWeekKey;
+    // Определим самую популярную категорию за прошлую неделю (можно потом для обзора)
+    // Пока просто сохраним completed и pomodoros
+    plannerStats.weeklyHistory[prevWeekKey] = {
+      completed: plannerStats.weekly.completedTasks,
+      pomodoros: plannerStats.weekly.pomodoros,
+      // topCategory будет вычислен при показе обзора
+    };
+  }
+
   if (sameWeek) {
+    // Та же неделя – просто добавляем daily к weekly
     plannerStats.weekly.completedTasks += plannerStats.daily.completedTasks;
     plannerStats.weekly.pomodoros += plannerStats.daily.pomodoros;
   } else {
+    // Новая неделя – сбрасываем weekly
     plannerStats.weekly.completedTasks = 0;
     plannerStats.weekly.pomodoros = 0;
   }
 
+  // Сбрасываем daily
   plannerStats.daily.completedTasks = 0;
   plannerStats.daily.pomodoros = 0;
   plannerStats.lastDate = todayKey;
@@ -318,6 +421,118 @@ function applyStatsDelta(counter, dateIsoString, delta) {
   saveStats();
 }
 
+// ==================== ДОСТИЖЕНИЯ ====================
+function checkAchievements() {
+  let newUnlocked = [];
+  for (const ach of ACHIEVEMENTS) {
+    if (!plannerStats.unlockedAchievements.includes(ach.id) && ach.condition(plannerStats, tasks)) {
+      plannerStats.unlockedAchievements.push(ach.id);
+      newUnlocked.push(ach);
+    }
+  }
+  if (newUnlocked.length > 0) {
+    saveStats();
+    // Показываем уведомление о каждом новом достижении
+    newUnlocked.forEach(ach => showAchievementToast(ach));
+    renderAchievements(); // обновляем отображение
+  }
+}
+
+function showAchievementToast(achievement) {
+  // Простое всплывающее уведомление
+  const toast = document.createElement("div");
+  toast.className = "achievement-toast";
+  toast.innerHTML = `
+    <span class="achievement-toast-icon">${achievement.icon}</span>
+    <span class="achievement-toast-text">🏆 Достижение: ${achievement.name}</span>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 4000);
+}
+
+function renderAchievements() {
+  if (!achievementsList) return;
+  achievementsList.innerHTML = "";
+  ACHIEVEMENTS.forEach(ach => {
+    const unlocked = plannerStats.unlockedAchievements.includes(ach.id);
+    const card = document.createElement("div");
+    card.className = `achievement-card ${unlocked ? "" : "locked"}`;
+    card.innerHTML = `
+      <div class="achievement-icon">${ach.icon}</div>
+      <div class="achievement-name">${ach.name}</div>
+      <div class="achievement-desc">${ach.description}</div>
+    `;
+    achievementsList.appendChild(card);
+  });
+}
+
+// ==================== ЕЖЕНЕДЕЛЬНЫЙ ОБЗОР ====================
+function showWeeklyReviewIfNeeded() {
+  const now = new Date();
+  // Понедельник = 1 (в js getDay(): 0 вс, 1 пн, ...)
+  if (now.getDay() !== 1) return; // показываем только в понедельник
+
+  const lastWeekKey = getIsoWeekKey(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const history = plannerStats.weeklyHistory[lastWeekKey];
+  if (!history) return; // нет данных за прошлую неделю
+
+  // Проверим, не показывали ли мы уже сегодня
+  const todayKey = getDateKey(now);
+  if (plannerStats.lastWeeklyReviewShown === todayKey) return;
+
+  // Формируем контент
+  let topCategory = "—";
+  // Попробуем вычислить самую частую категорию среди выполненных задач за прошлую неделю
+  const tasksLastWeek = tasks.filter(t => {
+    if (!t.completed || !t.completedAt) return false;
+    const completedDate = new Date(t.completedAt);
+    return getIsoWeekKey(completedDate) === lastWeekKey;
+  });
+  if (tasksLastWeek.length > 0) {
+    const freq = {};
+    tasksLastWeek.forEach(t => freq[t.category] = (freq[t.category] || 0) + 1);
+    topCategory = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+  }
+
+  const content = `
+    <div class="weekly-review-stats">
+      <div class="weekly-review-stat">
+        <span class="weekly-review-stat-label">✅ Завершено задач</span>
+        <span class="weekly-review-stat-value">${history.completed}</span>
+      </div>
+      <div class="weekly-review-stat">
+        <span class="weekly-review-stat-label">🍅 Помодоро</span>
+        <span class="weekly-review-stat-value">${history.pomodoros}</span>
+      </div>
+    </div>
+    <div class="weekly-review-category">
+      <span class="weekly-review-category-label">🏆 Самая продуктивная категория</span>
+      <span class="weekly-review-category-value">${topCategory}</span>
+    </div>
+  `;
+  weeklyReviewContent.innerHTML = content;
+
+  // Открываем модалку
+  weeklyReviewModal.classList.remove("hidden");
+  // Запоминаем, что показали сегодня
+  plannerStats.lastWeeklyReviewShown = todayKey;
+  saveStats();
+}
+
+// Закрытие модалки обзора
+closeWeeklyReview.addEventListener("click", () => {
+  weeklyReviewModal.classList.add("hidden");
+});
+weeklyReviewOk.addEventListener("click", () => {
+  weeklyReviewModal.classList.add("hidden");
+});
+weeklyReviewModal.addEventListener("click", (e) => {
+  if (e.target === weeklyReviewModal) weeklyReviewModal.classList.add("hidden");
+});
+
+// ==================== ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений, но с добавлением вызовов checkAchievements) ====================
 function isOverdue(task) {
   if (!task.deadline || task.completed) return false;
   const deadline = parseDate(task.deadline);
@@ -381,14 +596,10 @@ function getActiveSessionTitle() {
   if (pomodoroState.sessionTitle) {
     return pomodoroState.sessionTitle;
   }
-
   if (pomodoroState.taskId) {
     const task = tasks.find((item) => item.id === pomodoroState.taskId);
-    if (task) {
-      return task.text;
-    }
+    if (task) return task.text;
   }
-
   return "Без привязки";
 }
 
@@ -422,20 +633,12 @@ function updatePomodoroUI() {
 }
 
 function ensurePomodoroTicker() {
-  if (pomodoroTickId) {
-    return;
-  }
-
-  // Date.now() keeps timer accurate even when tab is backgrounded.
+  if (pomodoroTickId) return;
   pomodoroTickId = window.setInterval(() => {
-    if (!pomodoroState.isRunning || !pomodoroState.endsAt) {
-      return;
-    }
-
+    if (!pomodoroState.isRunning || !pomodoroState.endsAt) return;
     const secondsLeft = Math.max(0, Math.ceil((pomodoroState.endsAt - Date.now()) / 1000));
     pomodoroState.remainingSeconds = secondsLeft;
     updatePomodoroUI();
-
     if (secondsLeft === 0) {
       pomodoroState.isRunning = false;
       pomodoroState.endsAt = null;
@@ -446,52 +649,35 @@ function ensurePomodoroTicker() {
 }
 
 function stopPomodoroTicker() {
-  if (!pomodoroTickId) {
-    return;
-  }
-
+  if (!pomodoroTickId) return;
   window.clearInterval(pomodoroTickId);
   pomodoroTickId = null;
 }
 
 function ensureAudioReady() {
   if (audioContext) {
-    if (audioContext.state === "suspended") {
-      audioContext.resume().catch(() => {});
-    }
+    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
     return;
   }
-
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) {
-    return;
-  }
-
+  if (!AudioCtx) return;
   audioContext = new AudioCtx();
-  if (audioContext.state === "suspended") {
-    audioContext.resume().catch(() => {});
-  }
+  if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
 }
 
 function playNotificationSound() {
   try {
     ensureAudioReady();
-    if (!audioContext) {
-      return;
-    }
-
+    if (!audioContext) return;
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-
     oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
     gainNode.gain.setValueAtTime(0.001, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.18, audioContext.currentTime + 0.02);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-
     oscillator.start();
     oscillator.stop(audioContext.currentTime + 0.3);
   } catch (error) {
@@ -501,35 +687,24 @@ function playNotificationSound() {
 
 function startPomodoro() {
   ensureAudioReady();
-
-  if (pomodoroState.isRunning) {
-    return;
-  }
-
+  if (pomodoroState.isRunning) return;
   if (pomodoroState.remainingSeconds <= 0) {
     pomodoroState.remainingSeconds = pomodoroState.durationSeconds;
   }
-
   pomodoroState.isRunning = true;
   pomodoroState.endsAt = Date.now() + pomodoroState.remainingSeconds * 1000;
-
   ensurePomodoroTicker();
   updatePomodoroUI();
   renderTasks();
 }
 
 function pausePomodoro() {
-  if (!pomodoroState.isRunning) {
-    return;
-  }
-
+  if (!pomodoroState.isRunning) return;
   if (pomodoroState.endsAt) {
     pomodoroState.remainingSeconds = Math.max(0, Math.ceil((pomodoroState.endsAt - Date.now()) / 1000));
   }
-
   pomodoroState.isRunning = false;
   pomodoroState.endsAt = null;
-
   stopPomodoroTicker();
   updatePomodoroUI();
 }
@@ -550,45 +725,29 @@ function setPomodoroFocusSession({ taskId = null, title = "" }) {
 
   if (shouldConfirm) {
     const accepted = window.confirm("Текущая сессия будет перезапущена. Продолжить?");
-    if (!accepted) {
-      return;
-    }
+    if (!accepted) return;
   }
 
   pausePomodoro();
-
   pomodoroState.phase = "focus";
   pomodoroState.durationSeconds = POMODORO_CONFIG.focusSeconds;
   pomodoroState.remainingSeconds = POMODORO_CONFIG.focusSeconds;
   pomodoroState.taskId = taskId;
   pomodoroState.sessionTitle = title;
-
   startPomodoro();
 }
 
 function startTaskPomodoro(taskId) {
   const task = tasks.find((item) => item.id === taskId);
-  if (!task) {
-    return;
-  }
-
-  setPomodoroFocusSession({
-    taskId,
-    title: task.text,
-  });
+  if (!task) return;
+  setPomodoroFocusSession({ taskId, title: task.text });
 }
 
 function runQuickPomodoro() {
   const title = window.prompt("Название быстрой фокус-сессии:", "Быстрый Pomodoro");
-  if (title === null) {
-    return;
-  }
-
+  if (title === null) return;
   const normalizedTitle = title.trim() || "Быстрый Pomodoro";
-  setPomodoroFocusSession({
-    taskId: null,
-    title: normalizedTitle,
-  });
+  setPomodoroFocusSession({ taskId: null, title: normalizedTitle });
 }
 
 function handlePomodoroFinished() {
@@ -596,9 +755,7 @@ function handlePomodoroFinished() {
   playNotificationSound();
 
   if (pomodoroState.phase === "focus") {
-    // Track completed focus sessions globally and per-task.
     applyStatsDelta("pomodoros", finishedAt, 1);
-
     if (pomodoroState.taskId) {
       const task = tasks.find((item) => item.id === pomodoroState.taskId);
       if (task) {
@@ -627,11 +784,13 @@ function handlePomodoroFinished() {
     ensurePomodoroTicker();
     updatePomodoroUI();
     renderTasks();
+
+    // Проверяем достижения после завершения помидора
+    checkAchievements();
     return;
   }
 
   window.alert("Перерыв завершён. Можно запускать следующий фокус.");
-
   pomodoroState.phase = "focus";
   pomodoroState.durationSeconds = POMODORO_CONFIG.focusSeconds;
   pomodoroState.remainingSeconds = POMODORO_CONFIG.focusSeconds;
@@ -640,6 +799,7 @@ function handlePomodoroFinished() {
 
   updatePomodoroUI();
   renderTasks();
+  checkAchievements();
 }
 
 function createTaskCard(task) {
@@ -648,13 +808,8 @@ function createTaskCard(task) {
   card.dataset.id = task.id;
 
   const isFocusedTask = pomodoroState.taskId === task.id && pomodoroState.phase === "focus";
-  if (isFocusedTask) {
-    card.classList.add("focused");
-  }
-
-  if (recentlyAddedTaskId && recentlyAddedTaskId === task.id) {
-    card.classList.add("new");
-  }
+  if (isFocusedTask) card.classList.add("focused");
+  if (recentlyAddedTaskId && recentlyAddedTaskId === task.id) card.classList.add("new");
 
   const checkWrapper = document.createElement("label");
   checkWrapper.className = "task-check";
@@ -676,15 +831,12 @@ function createTaskCard(task) {
   const text = document.createElement("span");
   text.className = "task-text";
   text.textContent = task.text;
-
   titleGroup.appendChild(text);
 
   const pomodoroCounter = document.createElement("span");
   pomodoroCounter.className = "tomato-count";
   pomodoroCounter.textContent = `🍅 ${task.pomodoroCount}/${task.pomodoroTarget}`;
-  if (task.pomodoroCount >= task.pomodoroTarget) {
-    pomodoroCounter.classList.add("done");
-  }
+  if (task.pomodoroCount >= task.pomodoroTarget) pomodoroCounter.classList.add("done");
   titleGroup.appendChild(pomodoroCounter);
 
   const badges = document.createElement("div");
@@ -709,11 +861,8 @@ function createTaskCard(task) {
   deadline.textContent = task.deadline ? `Дедлайн: ${task.deadline}` : "Без дедлайна";
 
   if (task.deadline) {
-    if (isOverdue(task)) {
-      deadline.classList.add("overdue");
-    } else if (isDueToday(task)) {
-      deadline.classList.add("today");
-    }
+    if (isOverdue(task)) deadline.classList.add("overdue");
+    else if (isDueToday(task)) deadline.classList.add("today");
   }
 
   meta.appendChild(deadline);
@@ -751,7 +900,6 @@ function createTaskCard(task) {
   actions.append(focusButton, editButton, deleteButton);
 
   card.append(checkWrapper, main, actions);
-
   return card;
 }
 
@@ -854,15 +1002,14 @@ function addTask(event) {
   taskPomodoroTarget.value = "1";
   renderTasks();
   taskText.focus();
+
+  checkAchievements(); // проверяем достижения
 }
 
 function toggleTask(taskId, isCompleted) {
   const task = tasks.find((item) => item.id === taskId);
   if (!task) return;
-
-  if (task.completed === isCompleted) {
-    return;
-  }
+  if (task.completed === isCompleted) return;
 
   task.completed = isCompleted;
 
@@ -876,31 +1023,27 @@ function toggleTask(taskId, isCompleted) {
 
   saveTasks();
   renderTasks();
+
+  checkAchievements(); // проверяем достижения
 }
 
 function deleteTask(taskId) {
   tasks = tasks.filter((task) => task.id !== taskId);
-
-  if (pomodoroState.taskId === taskId) {
-    pomodoroState.taskId = null;
-  }
-
+  if (pomodoroState.taskId === taskId) pomodoroState.taskId = null;
   saveTasks();
   updatePomodoroUI();
   renderTasks();
+  checkAchievements(); // возможно, удаление может повлиять на достижения (например, all_categories)
 }
 
 function clearCompletedTasks() {
   const completedIds = new Set(tasks.filter((task) => task.completed).map((task) => task.id));
   tasks = tasks.filter((task) => !task.completed);
-
-  if (pomodoroState.taskId && completedIds.has(pomodoroState.taskId)) {
-    pomodoroState.taskId = null;
-  }
-
+  if (pomodoroState.taskId && completedIds.has(pomodoroState.taskId)) pomodoroState.taskId = null;
   saveTasks();
   updatePomodoroUI();
   renderTasks();
+  checkAchievements();
 }
 
 function openEditModal(taskId) {
@@ -936,14 +1079,13 @@ function submitEdit(event) {
   task.deadline = editDeadline.value || "";
   task.pomodoroTarget = normalizePomodoroTarget(editPomodoroTarget.value, task.pomodoroTarget || 1);
 
-  if (pomodoroState.taskId === task.id) {
-    pomodoroState.sessionTitle = updatedText;
-  }
+  if (pomodoroState.taskId === task.id) pomodoroState.sessionTitle = updatedText;
 
   saveTasks();
   closeEditModal();
   updatePomodoroUI();
   renderTasks();
+  checkAchievements(); // редактирование может повлиять на категории и т.п.
 }
 
 function initTheme() {
@@ -953,25 +1095,20 @@ function initTheme() {
 
 function exportPlannerData() {
   ensureStatsCurrentDate();
-
-  // Export both task list and aggregated stats in one file.
   const payload = {
     version: 1,
     exportedAt: new Date().toISOString(),
     tasks,
     stats: plannerStats,
   };
-
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-
   const link = document.createElement("a");
   link.href = url;
   link.download = `student-task-planner-${getDateKey()}.json`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-
   URL.revokeObjectURL(url);
 }
 
@@ -980,13 +1117,10 @@ function importPlannerData(file) {
 
   reader.onload = () => {
     try {
-      // Imported file fully replaces plannerTasks and plannerStats.
       const payload = JSON.parse(String(reader.result || "{}"));
-
       if (!Array.isArray(payload.tasks) || !payload.stats || typeof payload.stats !== "object") {
         throw new Error("Неверный формат файла. Ожидается объект с полями tasks и stats.");
       }
-
       tasks = payload.tasks.map(normalizeTask);
       plannerStats = normalizeStats(payload.stats);
       ensureStatsCurrentDate();
@@ -1000,6 +1134,7 @@ function importPlannerData(file) {
 
       renderTasks();
       updatePomodoroUI();
+      renderAchievements(); // обновляем достижения после импорта
       window.alert("Импорт завершён успешно.");
     } catch (error) {
       window.alert(`Ошибка импорта: ${error.message}`);
@@ -1025,6 +1160,10 @@ function init() {
   updateFilterButtons();
   updatePomodoroUI();
   renderTasks();
+  renderAchievements(); // отрисовываем достижения
+
+  // Показываем еженедельный обзор, если нужно
+  showWeeklyReviewIfNeeded();
 
   taskForm.addEventListener("submit", addTask);
 
@@ -1046,30 +1185,21 @@ function init() {
   taskList.addEventListener("change", (event) => {
     if (event.target.matches("input[type='checkbox']")) {
       const card = event.target.closest(".task-card");
-      if (card) {
-        toggleTask(card.dataset.id, event.target.checked);
-      }
+      if (card) toggleTask(card.dataset.id, event.target.checked);
     }
   });
 
   taskList.addEventListener("click", (event) => {
     const action = event.target.dataset.action;
     if (!action) return;
-
     const card = event.target.closest(".task-card");
     if (!card) return;
 
     if (action === "focus") {
       startTaskPomodoro(card.dataset.id);
-      return;
-    }
-
-    if (action === "edit") {
+    } else if (action === "edit") {
       openEditModal(card.dataset.id);
-      return;
-    }
-
-    if (action === "delete") {
+    } else if (action === "delete") {
       deleteTask(card.dataset.id);
     }
   });
@@ -1081,23 +1211,16 @@ function init() {
 
   quickPomodoroButton.addEventListener("click", runQuickPomodoro);
   exportDataButton.addEventListener("click", exportPlannerData);
-
-  importDataButton.addEventListener("click", () => {
-    importFileInput.click();
-  });
+  importDataButton.addEventListener("click", () => importFileInput.click());
 
   importFileInput.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
+    if (!file) return;
     const confirmed = window.confirm("Это заменит все текущие данные на устройстве!");
     if (!confirmed) {
       importFileInput.value = "";
       return;
     }
-
     importPlannerData(file);
   });
 
@@ -1105,19 +1228,15 @@ function init() {
   editClose.addEventListener("click", closeEditModal);
   editCancel.addEventListener("click", closeEditModal);
   editModal.addEventListener("click", (event) => {
-    if (event.target === editModal) {
-      closeEditModal();
-    }
+    if (event.target === editModal) closeEditModal();
   });
 
   timerStart.addEventListener("click", () => {
     const hasContext = pomodoroState.taskId || pomodoroState.sessionTitle;
-
     if (!hasContext && pomodoroState.phase === "focus" && pomodoroState.remainingSeconds === POMODORO_CONFIG.focusSeconds) {
       runQuickPomodoro();
       return;
     }
-
     startPomodoro();
   });
 
