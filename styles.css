@@ -708,3 +708,149 @@ body[data-theme="dark"] .task-card {
     bottom: 12px;
   }
 }
+/* ===== НОВЫЕ СТИЛИ ДЛЯ ДОСТИЖЕНИЙ И ОБЗОРА НЕДЕЛИ ===== */
+
+.achievements-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
+}
+
+.achievements-section h3 {
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.achievement-card {
+  background: var(--bg-accent);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  transition: transform 0.1s ease;
+}
+
+.achievement-card.locked {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.achievement-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.achievement-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.achievement-desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Модальное окно еженедельного обзора */
+.weekly-review-content {
+  padding: 12px 0;
+  display: grid;
+  gap: 16px;
+}
+
+.weekly-review-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.weekly-review-stat {
+  background: var(--bg-accent);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.weekly-review-stat-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.weekly-review-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.weekly-review-category {
+  background: var(--bg-accent);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.weekly-review-category-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-right: 6px;
+}
+
+.weekly-review-category-value {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Уведомление о новой ачивке (простейшее всплывающее) */
+.achievement-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border: 1px solid var(--primary);
+  border-radius: 40px;
+  padding: 10px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  animation: toast-in 0.3s ease;
+}
+
+.achievement-toast-icon {
+  font-size: 1.6rem;
+}
+
+.achievement-toast-text {
+  font-weight: 600;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 720px) {
+  .achievements-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
