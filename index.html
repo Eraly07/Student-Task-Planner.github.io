@@ -29,11 +29,11 @@
       <section class="panel tasks-panel">
         <div class="panel-header">
           <div>
-          <h2>Задачи</h2>
-          <p class="muted">Планируйте разумно, завершайте уверенно.</p>
+            <h2>Задачи</h2>
+            <p class="muted">Планируйте разумно, завершайте уверенно.</p>
+          </div>
+          <button id="clearCompleted" class="btn ghost" type="button">Очистить выполненные</button>
         </div>
-        <button id="clearCompleted" class="btn ghost" type="button">Очистить выполненные</button>
-      </div>
 
         <form id="taskForm" class="task-form">
           <div class="field">
@@ -86,91 +86,100 @@
         <section class="panel stats-panel">
           <div class="panel-header">
             <div>
-          <h2>Статистика</h2>
-          <p class="muted">Сводка вашей продуктивности.</p>
-        </div>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-label">Всего</span>
-          <span id="statTotal" class="stat-value">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Активные</span>
-          <span id="statActive" class="stat-value">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Выполненные</span>
-          <span id="statCompleted" class="stat-value">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Просроченные</span>
-          <span id="statOverdue" class="stat-value">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">На сегодня</span>
-          <span id="statToday" class="stat-value">0</span>
-        </div>
-      </div>
+              <h2>Статистика</h2>
+              <p class="muted">Сводка вашей продуктивности.</p>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Всего</span>
+              <span id="statTotal" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Активные</span>
+              <span id="statActive" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Выполненные</span>
+              <span id="statCompleted" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Просроченные</span>
+              <span id="statOverdue" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">На сегодня</span>
+              <span id="statToday" class="stat-value">0</span>
+            </div>
+          </div>
 
-      <div class="advanced-stats">
-        <h3>Расширенная статистика</h3>
-        <div class="advanced-stats-grid">
-          <div class="mini-stat">
-            <span class="mini-stat-label">Завершено сегодня</span>
-            <span id="statCompletedTodayAdv" class="mini-stat-value">0</span>
-          </div>
-          <div class="mini-stat">
-            <span class="mini-stat-label">Завершено за неделю</span>
-            <span id="statCompletedWeekAdv" class="mini-stat-value">0</span>
-          </div>
-          <div class="mini-stat">
-            <span class="mini-stat-label">Завершено всего</span>
-            <span id="statCompletedAllAdv" class="mini-stat-value">0</span>
-          </div>
-          <div class="mini-stat">
-            <span class="mini-stat-label">Pomodoro сегодня</span>
-            <span id="statPomodoroTodayAdv" class="mini-stat-value">0</span>
-          </div>
-          <div class="mini-stat">
-            <span class="mini-stat-label">Pomodoro за неделю</span>
-            <span id="statPomodoroWeekAdv" class="mini-stat-value">0</span>
-          </div>
-        </div>
+          <div class="advanced-stats">
+            <h3>Расширенная статистика</h3>
+            <div class="advanced-stats-grid">
+              <div class="mini-stat">
+                <span class="mini-stat-label">Завершено сегодня</span>
+                <span id="statCompletedTodayAdv" class="mini-stat-value">0</span>
+              </div>
+              <div class="mini-stat">
+                <span class="mini-stat-label">Завершено за неделю</span>
+                <span id="statCompletedWeekAdv" class="mini-stat-value">0</span>
+              </div>
+              <div class="mini-stat">
+                <span class="mini-stat-label">Завершено всего</span>
+                <span id="statCompletedAllAdv" class="mini-stat-value">0</span>
+              </div>
+              <div class="mini-stat">
+                <span class="mini-stat-label">Pomodoro сегодня</span>
+                <span id="statPomodoroTodayAdv" class="mini-stat-value">0</span>
+              </div>
+              <div class="mini-stat">
+                <span class="mini-stat-label">Pomodoro за неделю</span>
+                <span id="statPomodoroWeekAdv" class="mini-stat-value">0</span>
+              </div>
+            </div>
 
-        <div class="progress-box">
-          <div class="progress-head">
-            <span>Процент выполнения задач</span>
-            <strong id="completionProgressText">0%</strong>
+            <div class="progress-box">
+              <div class="progress-head">
+                <span>Процент выполнения задач</span>
+                <strong id="completionProgressText">0%</strong>
+              </div>
+              <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="completionProgressFill" class="progress-fill"></div>
+              </div>
+            </div>
           </div>
-          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <div id="completionProgressFill" class="progress-fill"></div>
+
+          <!-- Новая секция: Достижения -->
+          <div class="achievements-section">
+            <h3>🏆 Достижения</h3>
+            <div id="achievementsList" class="achievements-grid">
+              <!-- будут вставлены карточки достижений -->
+            </div>
           </div>
-        </div>
-      </div>
         </section>
 
         <section class="panel timer-panel">
           <div class="panel-header">
             <div>
-            <h2>Фокус-таймер</h2>
-            <p class="muted">Таймер связан с выбранной задачей или быстрой сессией.</p>
+              <h2>Фокус-таймер</h2>
+              <p class="muted">Таймер связан с выбранной задачей или быстрой сессией.</p>
+            </div>
           </div>
-        </div>
-        <p id="timerContext" class="timer-context">Нет активной сессии</p>
-        <p id="timerPhase" class="timer-phase">Режим: Фокус</p>
-        <div id="timerDisplay" class="timer-display">25:00</div>
-        <div class="timer-controls">
-          <button id="timerStart" class="btn primary" type="button">Старт</button>
-          <button id="timerPause" class="btn ghost" type="button">Пауза</button>
-          <button id="timerReset" class="btn ghost" type="button">Сброс</button>
-        </div>
-        <p class="timer-hint">Будьте в моменте. Короткие перерывы улучшают усвоение.</p>
-      </section>
-    </aside>
-  </main>
+          <p id="timerContext" class="timer-context">Нет активной сессии</p>
+          <p id="timerPhase" class="timer-phase">Режим: Фокус</p>
+          <div id="timerDisplay" class="timer-display">25:00</div>
+          <div class="timer-controls">
+            <button id="timerStart" class="btn primary" type="button">Старт</button>
+            <button id="timerPause" class="btn ghost" type="button">Пауза</button>
+            <button id="timerReset" class="btn ghost" type="button">Сброс</button>
+          </div>
+          <p class="timer-hint">Будьте в моменте. Короткие перерывы улучшают усвоение.</p>
+        </section>
+      </aside>
+    </main>
   </div>
 
+  <!-- Модальное окно редактирования задачи (без изменений) -->
   <div id="editModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editTitle">
     <div class="modal-content">
       <div class="modal-header">
@@ -215,6 +224,23 @@
     </div>
   </div>
 
+  <!-- НОВОЕ МОДАЛЬНОЕ ОКНО: Еженедельный обзор -->
+  <div id="weeklyReviewModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="weeklyReviewTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="weeklyReviewTitle">📊 Ваш обзор за прошлую неделю</h3>
+        <button id="closeWeeklyReview" class="icon-btn" type="button">Закрыть</button>
+      </div>
+      <div id="weeklyReviewContent" class="weekly-review-content">
+        <!-- здесь будет сгенерировано содержание -->
+      </div>
+      <div class="modal-actions">
+        <button id="weeklyReviewOk" class="btn primary" type="button">Отлично!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Плавающий таймер (без изменений) -->
   <div id="floatingTimer" class="floating-timer hidden" aria-live="polite">
     <div class="floating-timer-header">
       <span id="floatingTimerPhase">Фокус</span>
